@@ -90,14 +90,22 @@ class Shop(object):
 				if key[pygame.K_RETURN]:
 					self.buy_item()
 				if key[pygame.K_UP]:
-					self.select_cursor.ychange = -25
-					self.select_cursor.move_cursor()
 					self.selected_item -= 1
+					if self.selected_item < 0:
+						self.select_cursor.targetypos = (len(self.inventory.items_for_sale) + 1 * 25) + 75
+						self.selected_item = len(self.inventory.items_for_sale) - 1
+					else:
+						self.select_cursor.ychange = -25
+					self.select_cursor.move_cursor()
 					self.menuMove.play()
 				if key[pygame.K_DOWN]:
-					self.select_cursor.ychange = 25
-					self.select_cursor.move_cursor()
 					self.selected_item += 1
+					if self.selected_item > len(self.inventory.items_for_sale) - 1:
+						self.select_cursor.targetypos = 75
+						self.selected_item = 0
+					else:
+						self.select_cursor.ychange = +25
+					self.select_cursor.move_cursor()
 					self.menuMove.play()
 
 		for item in update_queue:
@@ -118,7 +126,10 @@ class Cursor(object):
 
 	def update_screen(self):
 		self.timer += 0.1
-		self.ypos += 0.01	*(self.targetypos - self.ypos)
+		if (self.targetypos - self.ypos) > 0:
+			self.ypos += 0.01 *(self.targetypos - self.ypos)
+		else:
+			self.ypos -= 0.01 * (abs(self.targetypos - self.ypos))
 		self.xpos += 0.05 * sin(self.timer/10)
 
 		display_image = pygame.image.load(self.image)
