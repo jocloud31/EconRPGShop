@@ -53,8 +53,8 @@ class Shop(object):
 	menuReady = pygame.mixer.Sound("FF7ready.wav")
 
 	def __init__(self, name, greeting, in_shop):
-		item_list = ["Potion", "Antidote"]
-		self.inventory = ShopInventory(item_list, 5000)
+		self.item_list = ["Potion", "Antidote"]
+		self.inventory = ShopInventory(self.item_list, 5000)
 		self.greeting = greeting
 		self.name = name
 		self.in_shop = in_shop
@@ -69,8 +69,15 @@ class Shop(object):
 		self.item_list.make_text()
 		self.temp_greet = TextObject("Welcome to my shop!", 100, 187, (255, 255, 255), False, 3000)
 		self.select_cursor = Cursor("shopcursor.png", 10, 75, 0)
-		self.success_buy_temp = 0
+		self.selected_item = 0
 		self.menuReady.play()
+
+	def buy_item(self):
+		self.bought = self.inventory.items_for_sale[self.selected_item]
+		self.sucessful_buy = TextObject("Thank you for purchasing {}".format(self.bought), 50, 187, (255, 255, 255), False, 2000)
+		self.menuSelect.play()
+
+
 
 	def handle_events(self):
 		for event in pygame.event.get():
@@ -81,19 +88,17 @@ class Shop(object):
 				if key[pygame.K_ESCAPE]:
 					self.in_shop = False
 				if key[pygame.K_RETURN]:
-					self.success_buy_temp = TextObject("Thank you for purchasing {}".format("Potion"), 50, 187, (255, 255, 255), False, 5000)
-					self.menuSelect.play()
+					self.buy_item()
 				if key[pygame.K_UP]:
 					self.select_cursor.ychange = -25
 					self.select_cursor.move_cursor()
+					self.selected_item -= 1
 					self.menuMove.play()
 				if key[pygame.K_DOWN]:
 					self.select_cursor.ychange = 25
 					self.select_cursor.move_cursor()
+					self.selected_item += 1
 					self.menuMove.play()
-				if key[pygame.K_F12]:
-					for item in self.inventory.items_for_sale:
-						print item
 
 		for item in update_queue:
 			item.update_screen()
