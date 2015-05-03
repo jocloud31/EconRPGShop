@@ -52,17 +52,20 @@ class Shop(object):
 	menuMove = pygame.mixer.Sound("FF7move.wav")
 	menuReady = pygame.mixer.Sound("FF7ready.wav")
 
-	def __init__(self, name, greeting, items_for_sale, merchant_gold, in_shop):
+	def __init__(self, name, greeting, in_shop):
+		item_list = ["Potion", "Antidote"]
+		self.inventory = ShopInventory(item_list, 5000)
 		self.greeting = greeting
 		self.name = name
-		self.items_for_sale = items_for_sale
-		self.merchant_gold = merchant_gold
 		self.in_shop = in_shop
 		self.shop_background = Background([0, 0, 0])
 		self.shop_greeting = TextObject(self.greeting, 50, 50, (255, 255, 255), True, 0)
 		self.shop_background.update_screen()
 		self.shop_greeting.make_text()
-		self.item_list = TextObject(self.items_for_sale, 75, 75, (255, 255, 255), True, 0)
+		itemy = 75
+		for item in self.inventory.items_for_sale:
+			self.item_list = TextObject(item, 75, itemy, (255, 255, 255), True, 0)
+			itemy += 25
 		self.item_list.make_text()
 		self.temp_greet = TextObject("Welcome to my shop!", 100, 187, (255, 255, 255), False, 3000)
 		self.select_cursor = Cursor("shopcursor.png", 10, 75, 0)
@@ -78,7 +81,7 @@ class Shop(object):
 				if key[pygame.K_ESCAPE]:
 					self.in_shop = False
 				if key[pygame.K_RETURN]:
-					self.success_buy_temp = TextObject("Thank you for purchasing {}".format(self.items_for_sale), 50, 187, (255, 255, 255), False, 5000)
+					self.success_buy_temp = TextObject("Thank you for purchasing {}".format("Potion"), 50, 187, (255, 255, 255), False, 5000)
 					self.menuSelect.play()
 				if key[pygame.K_UP]:
 					self.select_cursor.ychange = -25
@@ -88,6 +91,9 @@ class Shop(object):
 					self.select_cursor.ychange = 25
 					self.select_cursor.move_cursor()
 					self.menuMove.play()
+				if key[pygame.K_F12]:
+					for item in self.inventory.items_for_sale:
+						print item
 
 		for item in update_queue:
 			item.update_screen()
@@ -117,10 +123,17 @@ class Cursor(object):
 	def move_cursor(self):
 		self.targetypos += self.ychange
 
+
+class ShopInventory(object):
+	def __init__(self, items_for_sale, merchant_gold):
+		self.items_for_sale = items_for_sale
+		self.merchant_gold = merchant_gold
+
+
 update_queue = []
 shop_display = pygame.display.set_mode((400, 400))
 font = pygame.font.SysFont(None, 25)
-item_shop = Shop("Jay's Shop", "What would you like to buy?", "Potion", 2000, True)
+item_shop = Shop("Jay's Shop", "What would you like to buy?", True)
 
 
 while item_shop.in_shop:
@@ -131,22 +144,10 @@ quit()
 '''
 
 
-shopDisplay = pygame.display.set_mode((400, 400))
-pygame.display.set_caption("Welcome to Jay's shop!")
-font = pygame.font.SysFont(None, 25)
-
 potionPrice = 50
 userGold = 100
 merchantGold = 0
 merchantPotionStock = 1
-
-inShop = True
-
-
-def displaytext(msg, textx, texty, color):
-	on_screen = font.render(msg, True, color)
-	shopDisplay.blit(on_screen, [textx, texty])
-
 
 def buyitem(quantity, cost, stock):
 	howmany = quantity
