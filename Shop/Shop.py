@@ -90,15 +90,17 @@ class Cursor(object):
 		self.xpos = xpos
 		self.ypos = ypos
 		self.ychange = ychange
+		self.targetypos = self.ypos
 		update_queue.append(self)
 
 	def update_screen(self):
+		self.ypos += 0.004	*(self.targetypos - self.ypos)
 		display_image = pygame.image.load(self.image)
 		shop_display.blit(display_image, [self.xpos, self.ypos])
 		self.ychange = 0
 
 	def move_cursor(self):
-		self.ypos += self.ychange
+		self.targetypos += self.ychange
 
 update_queue = []
 shop_display = pygame.display.set_mode((400, 400))
