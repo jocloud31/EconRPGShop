@@ -84,13 +84,13 @@ class Shop(object):
 			if event.type == pygame.QUIT:
 				self.in_shop = False
 			if event.type == pygame.KEYDOWN:
-				pygame.mixer.stop()
 				key = pygame.key.get_pressed()
 				if key[pygame.K_ESCAPE]:
 					self.in_shop = False
 				if key[pygame.K_RETURN]:
 					self.buy_item()
 				if key[pygame.K_UP]:
+					pygame.mixer.stop()
 					self.selected_item -= 1
 					if self.selected_item < 0:
 						self.select_cursor.targetypos = (len(self.inventory.items_for_sale) + 1 * 25) + 75
@@ -100,6 +100,7 @@ class Shop(object):
 					self.select_cursor.move_cursor()
 					self.menuMove.play()
 				if key[pygame.K_DOWN]:
+					pygame.mixer.stop()
 					self.selected_item += 1
 					if self.selected_item > len(self.inventory.items_for_sale) - 1:
 						self.select_cursor.targetypos = 75
