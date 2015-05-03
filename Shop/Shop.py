@@ -84,6 +84,7 @@ class Shop(object):
 			if event.type == pygame.QUIT:
 				self.in_shop = False
 			if event.type == pygame.KEYDOWN:
+				pygame.mixer.stop()
 				key = pygame.key.get_pressed()
 				if key[pygame.K_ESCAPE]:
 					self.in_shop = False
