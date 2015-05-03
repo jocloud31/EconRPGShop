@@ -6,7 +6,7 @@ Created on Apr 14, 2015
 
 # shop element test for $unnamedRPG
 import pygame
-
+from math import sin
 pygame.init()
 
 
@@ -59,7 +59,7 @@ class Shop(object):
 		self.item_list = TextObject(self.items_for_sale, 75, 75, (255, 255, 255), True, 0)
 		self.item_list.make_text()
 		self.temp_greet = TextObject("Welcome to my shop!", 100, 187, (255, 255, 255), False, 3000)
-		self.select_cursor = Cursor("cursor.jpg", 50, 75, 0)
+		self.select_cursor = Cursor("shopcursor.png", 10, 75, 0)
 		self.success_buy_temp = 0
 
 	def handle_events(self):
@@ -91,10 +91,16 @@ class Cursor(object):
 		self.ypos = ypos
 		self.ychange = ychange
 		self.targetypos = self.ypos
+		self.targetxpos = self.xpos
+		self.timer = 0
 		update_queue.append(self)
 
 	def update_screen(self):
+		self.timer += 0.1
 		self.ypos += 0.004	*(self.targetypos - self.ypos)
+		self.xpos += 0.05 * sin(self.timer/10)
+
+
 		display_image = pygame.image.load(self.image)
 		shop_display.blit(display_image, [self.xpos, self.ypos])
 		self.ychange = 0
