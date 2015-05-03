@@ -46,6 +46,12 @@ class TextObject(object):
 
 
 class Shop(object):
+	menuSelect = pygame.mixer.Sound("FF7ok.wav")
+	menuCancel = pygame.mixer.Sound("FF7cancel.wav")
+	menuWrong = pygame.mixer.Sound("FF7no.wav")
+	menuMove = pygame.mixer.Sound("FF7move.wav")
+	menuReady = pygame.mixer.Sound("FF7ready.wav")
+
 	def __init__(self, name, greeting, items_for_sale, merchant_gold, in_shop):
 		self.greeting = greeting
 		self.name = name
@@ -61,6 +67,7 @@ class Shop(object):
 		self.temp_greet = TextObject("Welcome to my shop!", 100, 187, (255, 255, 255), False, 3000)
 		self.select_cursor = Cursor("shopcursor.png", 10, 75, 0)
 		self.success_buy_temp = 0
+		self.menuReady.play()
 
 	def handle_events(self):
 		for event in pygame.event.get():
@@ -72,12 +79,15 @@ class Shop(object):
 					self.in_shop = False
 				if key[pygame.K_RETURN]:
 					self.success_buy_temp = TextObject("Thank you for purchasing {}".format(self.items_for_sale), 50, 187, (255, 255, 255), False, 5000)
+					self.menuSelect.play()
 				if key[pygame.K_UP]:
 					self.select_cursor.ychange = -25
 					self.select_cursor.move_cursor()
+					self.menuMove.play()
 				if key[pygame.K_DOWN]:
 					self.select_cursor.ychange = 25
 					self.select_cursor.move_cursor()
+					self.menuMove.play()
 
 		for item in update_queue:
 			item.update_screen()
@@ -97,9 +107,8 @@ class Cursor(object):
 
 	def update_screen(self):
 		self.timer += 0.1
-		self.ypos += 0.004	*(self.targetypos - self.ypos)
+		self.ypos += 0.01	*(self.targetypos - self.ypos)
 		self.xpos += 0.05 * sin(self.timer/10)
-
 
 		display_image = pygame.image.load(self.image)
 		shop_display.blit(display_image, [self.xpos, self.ypos])
@@ -120,10 +129,7 @@ while item_shop.in_shop:
 pygame.quit()
 quit()
 '''
-menuSelect = pygame.mixer.Sound("FF7ok.wav")
-menuCancel = pygame.mixer.Sound("FF7cancel.wav")
-menuWrong = pygame.mixer.Sound("FF7no.wav")
-menuMove = pygame.mixer.Sound("FF7move.wav")
+
 
 shopDisplay = pygame.display.set_mode((400, 400))
 pygame.display.set_caption("Welcome to Jay's shop!")
