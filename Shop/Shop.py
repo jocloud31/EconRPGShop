@@ -52,13 +52,15 @@ class Shop(object):
 		self.items_for_sale = items_for_sale
 		self.merchant_gold = merchant_gold
 		self.in_shop = in_shop
-		self.shop_background = Background([15, 15, 15])
+		self.shop_background = Background([0, 0, 0])
 		self.shop_greeting = TextObject(self.greeting, 50, 50, (255, 255, 255), True, 0)
 		self.shop_background.update_screen()
 		self.shop_greeting.make_text()
 		self.item_list = TextObject(self.items_for_sale, 75, 75, (255, 255, 255), True, 0)
 		self.item_list.make_text()
-		self.test_temp = TextObject("You pressed enter", 125, 187, (255, 255, 255), False, 5000)
+		self.temp_greet = TextObject("Welcome to my shop!", 100, 187, (255, 255, 255), False, 3000)
+		self.select_cursor = Cursor("cursor.jpg", 50, 75, 0)
+		self.success_buy_temp = 0
 
 	def handle_events(self):
 		for event in pygame.event.get():
@@ -69,16 +71,40 @@ class Shop(object):
 				if key[pygame.K_ESCAPE]:
 					self.in_shop = False
 				if key[pygame.K_RETURN]:
-					self.test_temp = TextObject("You pressed enter", 125, 187, (255, 255, 255), False, 5000)
+					self.success_buy_temp = TextObject("Thank you for purchasing {}".format(self.items_for_sale), 50, 187, (255, 255, 255), False, 5000)
+				if key[pygame.K_UP]:
+					self.select_cursor.ychange = -25
+					self.select_cursor.move_cursor()
+				if key[pygame.K_DOWN]:
+					self.select_cursor.ychange = 25
+					self.select_cursor.move_cursor()
 
 		for item in update_queue:
 			item.update_screen()
 		pygame.display.update()
 
+
+class Cursor(object):
+	def __init__(self, image, xpos, ypos, ychange):
+		self.image = image
+		self.xpos = xpos
+		self.ypos = ypos
+		self.ychange = ychange
+		update_queue.append(self)
+
+	def update_screen(self):
+		display_image = pygame.image.load(self.image)
+		shop_display.blit(display_image, [self.xpos, self.ypos])
+		self.ychange = 0
+
+	def move_cursor(self):
+		self.ypos += self.ychange
+
 update_queue = []
 shop_display = pygame.display.set_mode((400, 400))
 font = pygame.font.SysFont(None, 25)
-item_shop = Shop("Jay's Shop", "Welcome to my shop!", "Potion", 2000, True)
+item_shop = Shop("Jay's Shop", "What would you like to buy?", "Potion", 2000, True)
+
 
 while item_shop.in_shop:
 	item_shop.handle_events()
