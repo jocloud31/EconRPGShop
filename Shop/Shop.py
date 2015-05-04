@@ -20,22 +20,26 @@ class Background(object):
 
 
 class TextObject(object):
-	def __init__(self, message, textx, texty, color, is_permanent, time_to_death):
+	def __init__(self, message, textx, texty, color, is_permanent, time_to_death, is_centered):
 		self.message = message
 		self.textx = textx
 		self.texty = texty
 		self.color = color
 		self.is_permanent = is_permanent
 		self.time_to_death = time_to_death
+		self.is_centered = is_centered
 		update_queue.append(self)
 
 	def make_text(self):
 		on_screen = font.render(self.message, True, self.color)
+		if self.is_centered:
+			thing = on_screen.get_rect()
+			self.textx = (display_x / 2) - (thing.width / 2)
+			self.texty = (display_y / 2) - (thing.height / 2)
 		shop_display.blit(on_screen, [self.textx, self.texty])
 
 	def is_temp(self):
 		if not self.is_permanent and self.time_to_death > 0:
-			self.make_text()
 			self.time_to_death -= 1
 		if not self.is_permanent and self.time_to_death <= 0:
 			update_queue.remove(self)
@@ -53,31 +57,32 @@ class Shop(object):
 	menuReady = pygame.mixer.Sound("FF7ready.wav")
 
 	def __init__(self, name, greeting, in_shop):
-		self.item_list = ["Potion", "Antidote"]
+		self.item_list = ["Potion", "Antidote", "Phoenix Down"]
 		self.inventory = ShopInventory(self.item_list, 5000)
 		self.greeting = greeting
 		self.name = name
 		self.in_shop = in_shop
 		self.shop_background = Background([0, 0, 0])
-		self.shop_greeting = TextObject(self.greeting, 50, 50, (255, 255, 255), True, 0)
+		self.shop_greeting = TextObject(self.greeting, 50, 50, (255, 255, 255), True, 0, False)
 		self.shop_background.update_screen()
 		self.shop_greeting.make_text()
+		self.selected = "None"
+		self.sucessful_buy = "none"
 		itemy = 75
 		for item in self.inventory.items_for_sale:
-			self.item_list = TextObject(item, 75, itemy, (255, 255, 255), True, 0)
+			self.item_list = TextObject(item, 75, itemy, (255, 255, 255), True, 0, False)
 			itemy += 25
 		self.item_list.make_text()
-		self.temp_greet = TextObject("Welcome to my shop!", 100, 187, (255, 255, 255), False, 3000)
+		self.temp_greet = TextObject("Welcome to my shop!", 0, 0, (255, 255, 255), False, 3000, True)
 		self.select_cursor = Cursor("shopcursor.png", 10, 75, 0)
 		self.selected_item = 0
 		self.menuReady.play()
 
 	def buy_item(self):
-		self.bought = self.inventory.items_for_sale[self.selected_item]
-		self.sucessful_buy = TextObject("Thank you for purchasing {}".format(self.bought), 50, 187, (255, 255, 255), False, 2000)
+		self.selected = self.inventory.items_for_sale[self.selected_item]
+		self.actual_text = "Thank you for purchasing {}".format(self.selected)
+		self.sucessful_buy = TextObject(self.actual_text, 0, 0, (255, 255, 255), False, 2000, True)
 		self.menuSelect.play()
-
-
 
 	def handle_events(self):
 		for event in pygame.event.get():
@@ -93,7 +98,7 @@ class Shop(object):
 					pygame.mixer.stop()
 					self.selected_item -= 1
 					if self.selected_item < 0:
-						self.select_cursor.targetypos = (len(self.inventory.items_for_sale) + 1 * 25) + 75
+						self.select_cursor.targetypos = (len(self.inventory.items_for_sale) - 1) * 25 + 75
 						self.selected_item = len(self.inventory.items_for_sale) - 1
 					else:
 						self.select_cursor.ychange = -25
@@ -149,7 +154,10 @@ class ShopInventory(object):
 
 
 update_queue = []
-shop_display = pygame.display.set_mode((400, 400))
+display_x = 400
+display_y = 400
+display_size = display_x, display_y
+shop_display = pygame.display.set_mode(display_size)
 font = pygame.font.SysFont(None, 25)
 item_shop = Shop("Jay's Shop", "What would you like to buy?", True)
 
