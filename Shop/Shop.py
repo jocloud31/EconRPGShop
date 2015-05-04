@@ -5,9 +5,25 @@ Created on Apr 14, 2015
 """
 
 # shop element test for $unnamedRPG
-import pygame
 from math import sin
+
+import pygame
+
+from collections import Counter
+
 pygame.init()
+
+
+class Player(object):
+	def __init__(self, player_gold):
+		self.inventory = Counter()
+		self.player_gold = player_gold
+
+	def add_to_inventory(self, item_to_add):
+		self.inventory[item_to_add] += 1
+
+	def print_inventory(self):
+		print self.inventory
 
 
 class Background(object):
@@ -56,9 +72,9 @@ class Shop(object):
 	menuMove = pygame.mixer.Sound("FF7move.wav")
 	menuReady = pygame.mixer.Sound("FF7ready.wav")
 
-	def __init__(self, name, greeting, in_shop):
-		self.item_list = ["Potion", "Antidote", "Phoenix Down"]
-		self.inventory = ShopInventory(self.item_list, 5000)
+	def __init__(self, name, greeting, in_shop, merchant_gold):
+		self.inventory = Counter({"Potion": 50, "Antidote": 20, "Phoenix Down": 15})
+		self.merchant_gold = merchant_gold
 		self.greeting = greeting
 		self.name = name
 		self.in_shop = in_shop
@@ -67,47 +83,65 @@ class Shop(object):
 		self.shop_background.update_screen()
 		self.shop_greeting.make_text()
 		self.selected = "None"
-		self.sucessful_buy = "none"
+		self.successful_buy = "none"
+		self.item_names = []
 		itemy = 75
-		for item in self.inventory.items_for_sale:
+		for item in self.inventory:
 			self.item_list = TextObject(item, 75, itemy, (255, 255, 255), True, 0, False)
+			self.item_names.append(item)
 			itemy += 25
 		self.item_list.make_text()
-		self.temp_greet = TextObject("Welcome to my shop!", 0, 0, (255, 255, 255), False, 3000, True)
+		self.temp_greet = TextObject("Welcome to my shop!", 0, 0, (255, 255, 255), False, 1000, True)
 		self.select_cursor = Cursor("shopcursor.png", 10, 75, 0)
 		self.selected_item = 0
 		self.menuReady.play()
 
 	def buy_item(self):
-		self.selected = self.inventory.items_for_sale[self.selected_item]
-		self.actual_text = "Thank you for purchasing {}".format(self.selected)
-		self.sucessful_buy = TextObject(self.actual_text, 0, 0, (255, 255, 255), False, 2000, True)
-		self.menuSelect.play()
+		if update_queue[-1] != self.select_cursor:
+			update_queue.pop()
+		self.selected = self.item_names[self.selected_item]
+		if 1 * master_item_list[self.selected] <= player_one.player_gold and 1 <= self.inventory[self.selected]:
+			self.actual_text = "Thank you for purchasing {}".format(self.selected)
+			self.successful_buy = TextObject(self.actual_text, 0, 0, (255, 255, 255), False, 2000, True)
+			player_one.add_to_inventory(self.selected)
+			player_one.player_gold -= master_item_list[self.selected]
+			self.merchant_gold += master_item_list[self.selected]
+			self.inventory[self.selected] -= 1
+			self.menuSelect.play()
+		elif 1 * master_item_list[self.selected] > player_one.player_gold:
+			self.actual_text = "You can't afford any more {}s".format(self.selected)
+			self.failed_buy = TextObject(self.actual_text, 0, 0, (255, 255, 255), False, 2000, True)
+			self.menuWrong.play()
+		elif self.inventory[self.selected] == 0:
+			self.actual_text = "Sorry, I don't have any more {}s".format(self.selected)
+			self.failed_buy = TextObject(self.actual_text, 0, 0, (255, 255, 255), False, 2000, True)
+			self.menuWrong.play()
 
 	def handle_events(self):
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				self.in_shop = False
 			if event.type == pygame.KEYDOWN:
+				self.menuWrong.stop()
+				self.menuSelect.stop()
+				self.menuMove.stop()
 				key = pygame.key.get_pressed()
 				if key[pygame.K_ESCAPE]:
 					self.in_shop = False
 				if key[pygame.K_RETURN]:
 					self.buy_item()
 				if key[pygame.K_UP]:
-					pygame.mixer.stop()
 					self.selected_item -= 1
 					if self.selected_item < 0:
-						self.select_cursor.targetypos = (len(self.inventory.items_for_sale) - 1) * 25 + 75
-						self.selected_item = len(self.inventory.items_for_sale) - 1
+						self.select_cursor.targetypos = (len(self.inventory) - 1) * 25 + 75
+						self.selected_item = len(self.inventory) - 1
 					else:
 						self.select_cursor.ychange = -25
 					self.select_cursor.move_cursor()
 					self.menuMove.play()
 				if key[pygame.K_DOWN]:
-					pygame.mixer.stop()
 					self.selected_item += 1
-					if self.selected_item > len(self.inventory.items_for_sale) - 1:
+					if self.selected_item > len(self.inventory) - 1:
 						self.select_cursor.targetypos = 75
 						self.selected_item = 0
 					else:
@@ -146,20 +180,15 @@ class Cursor(object):
 	def move_cursor(self):
 		self.targetypos += self.ychange
 
-
-class ShopInventory(object):
-	def __init__(self, items_for_sale, merchant_gold):
-		self.items_for_sale = items_for_sale
-		self.merchant_gold = merchant_gold
-
-
 update_queue = []
 display_x = 400
 display_y = 400
 display_size = display_x, display_y
 shop_display = pygame.display.set_mode(display_size)
 font = pygame.font.SysFont(None, 25)
-item_shop = Shop("Jay's Shop", "What would you like to buy?", True)
+item_shop = Shop("Jay's Shop", "What would you like to buy?", True, 1500)
+player_one = Player(30000)
+master_item_list = Counter({"Potion": 50, "Antidote": 25, "Phoenix Down": 150})
 
 
 while item_shop.in_shop:
